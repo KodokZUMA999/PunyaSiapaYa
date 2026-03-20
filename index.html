@@ -270,7 +270,6 @@
         photosTaken = 0;
         capturedImagesData = [];
         capturedFilterPos = [];
-        currentFilter = 1;
         filterPos = { x: 0.5, y: 0.08 };
         filterFaceW = 0.3;
 
@@ -346,7 +345,7 @@
             var imageData = tempCanvas.toDataURL('image/png');
             
             capturedImagesData.push(imageData);
-            capturedFilterPos.push({ fx: filterPos.x, fy: filterPos.y, fw: filterFaceW });
+            capturedFilterPos.push({ fx: filterPos.x, fy: filterPos.y, fw: filterFaceW, fi: currentFilter });
 
             thumbnails[photosTaken].style.backgroundImage = "url(" + imageData + ")";
             thumbnails[photosTaken].style.opacity = '1';
@@ -389,17 +388,10 @@
                 var targetX = box.xCenter;
                 // Posisikan center filter tepat di atas kepala:
                 // top of face = yCenter - height/2; geser ke atas 60% lagi dari face height
-                var targetX, targetY;
-                if (currentFilter === 2) {
-                    // Bebek: taruh di bahu kanan user (kiri di video unmirrored, kanan di canvas)
-                    targetX = Math.max(0.05, box.xCenter - box.width * 0.85);
-                    targetY = Math.min(0.95, box.yCenter + box.height * 0.55);
-                } else {
-                    // Filter lain: di atas kepala (bottom filter align ke puncak kepala)
-                    var topOfHead = box.yCenter - box.height * 0.5;
-                    targetX = box.xCenter;
-                    targetY = Math.max(0.02, topOfHead);
-                }
+                // Semua filter: di atas kepala (bottom filter align ke puncak kepala)
+                var topOfHead = box.yCenter - box.height * 0.5;
+                var targetX = box.xCenter;
+                var targetY = Math.max(0.02, topOfHead);
                 // Smooth position
                 filterPos.x += (targetX - filterPos.x) * 0.4;
                 filterPos.y += (targetY - filterPos.y) * 0.4;
@@ -431,11 +423,11 @@
                     var cx = (1 - filterPos.x) * w;
                     var cy = filterPos.y * h;
                     if (currentFilter === 2) {
-                        // Bebek: crop top 65% saja (buang badan bawah), center-anchor di bahu
-                        var cropSrcH = img.naturalHeight * 0.65;
-                        var cropDstH = imgW * 0.65 * img.naturalHeight / img.naturalWidth;
+                        // Bebek: crop top 85% (buang kaki bawah), bottom-anchor di puncak kepala
+                        var cropSrcH = img.naturalHeight * 0.85;
+                        var cropDstH = imgW * 0.85 * img.naturalHeight / img.naturalWidth;
                         ctx.drawImage(img, 0, 0, img.naturalWidth, cropSrcH,
-                            cx - imgW / 2, cy - cropDstH / 2, imgW, cropDstH);
+                            cx - imgW / 2, cy - cropDstH, imgW, cropDstH);
                     } else {
                         // Lainnya: full image, bottom-anchor di puncak kepala
                         ctx.drawImage(img, cx - imgW / 2, cy - imgH, imgW, imgH);
@@ -585,20 +577,21 @@
                 drawImageProp(ctx, photos[i], 0, 0, photoWidth, photoHeight);
                 ctx.restore();
 
-                var fImg = filterImages[currentFilter];
-                if (currentFilter > 0 && fImg && fImg.complete && fImg.naturalWidth > 0) {
-                    var fPos = capturedFilterPos[i] || { fx: 0.5, fy: 0.15, fw: 0.3 };
+                var fPos = capturedFilterPos[i] || { fx: 0.5, fy: 0.15, fw: 0.3, fi: 1 };
+                var fFilterIdx = (fPos.fi !== undefined) ? fPos.fi : currentFilter;
+                var fImg = filterImages[fFilterIdx];
+                if (fFilterIdx > 0 && fImg && fImg.complete && fImg.naturalWidth > 0) {
                     // fw = normalized face width; foto di strip juga di-mirror, jadi flip X
                     var fimgW = (fPos.fw || 0.3) * photoWidth * 0.9;
                     var fimgH = fimgW * fImg.naturalHeight / fImg.naturalWidth;
                     var fposCX = sidePadding + (1 - fPos.fx) * photoWidth;
                     var fposY  = currentY + fPos.fy * photoHeight;
-                    if (currentFilter === 2) {
-                        // Bebek: crop top 65%
-                        var fCropSrcH = fImg.naturalHeight * 0.65;
-                        var fCropDstH = fimgW * 0.65 * fImg.naturalHeight / fImg.naturalWidth;
+                    if (fFilterIdx === 2) {
+                        // Bebek: crop top 85%, bottom-anchor
+                        var fCropSrcH = fImg.naturalHeight * 0.85;
+                        var fCropDstH = fimgW * 0.85 * fImg.naturalHeight / fImg.naturalWidth;
                         ctx.drawImage(fImg, 0, 0, fImg.naturalWidth, fCropSrcH,
-                            fposCX - fimgW / 2, fposY - fCropDstH / 2, fimgW, fCropDstH);
+                            fposCX - fimgW / 2, fposY - fCropDstH, fimgW, fCropDstH);
                     } else {
                         // Lainnya: full image, bottom-anchor
                         ctx.drawImage(fImg, fposCX - fimgW / 2, fposY - fimgH, fimgW, fimgH);
