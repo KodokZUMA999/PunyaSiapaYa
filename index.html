@@ -270,6 +270,7 @@
         photosTaken = 0;
         capturedImagesData = [];
         capturedFilterPos = [];
+        currentFilter = 1;
         filterPos = { x: 0.5, y: 0.08 };
         filterFaceW = 0.3;
 
@@ -429,9 +430,16 @@
                     // filterPos.x adalah koordinat video asli (unmirrored), canvas di-mirror jadi flip X
                     var cx = (1 - filterPos.x) * w;
                     var cy = filterPos.y * h;
-                    // Bebek = center-anchor (di bahu), lainnya = bottom-anchor (di atas kepala)
-                    var drawY = (currentFilter === 2) ? cy - imgH / 2 : cy - imgH;
-                    ctx.drawImage(img, cx - imgW / 2, drawY, imgW, imgH);
+                    if (currentFilter === 2) {
+                        // Bebek: crop top 65% saja (buang badan bawah), center-anchor di bahu
+                        var cropSrcH = img.naturalHeight * 0.65;
+                        var cropDstH = imgW * 0.65 * img.naturalHeight / img.naturalWidth;
+                        ctx.drawImage(img, 0, 0, img.naturalWidth, cropSrcH,
+                            cx - imgW / 2, cy - cropDstH / 2, imgW, cropDstH);
+                    } else {
+                        // Lainnya: full image, bottom-anchor di puncak kepala
+                        ctx.drawImage(img, cx - imgW / 2, cy - imgH, imgW, imgH);
+                    }
                 }
 
                 // Kirim frame ke face detection tiap 3 frame
@@ -585,9 +593,16 @@
                     var fimgH = fimgW * fImg.naturalHeight / fImg.naturalWidth;
                     var fposCX = sidePadding + (1 - fPos.fx) * photoWidth;
                     var fposY  = currentY + fPos.fy * photoHeight;
-                    // Bebek = center-anchor, lainnya = bottom-anchor
-                    var stripDrawY = (currentFilter === 2) ? fposY - fimgH / 2 : fposY - fimgH;
-                    ctx.drawImage(fImg, fposCX - fimgW / 2, stripDrawY, fimgW, fimgH);
+                    if (currentFilter === 2) {
+                        // Bebek: crop top 65%
+                        var fCropSrcH = fImg.naturalHeight * 0.65;
+                        var fCropDstH = fimgW * 0.65 * fImg.naturalHeight / fImg.naturalWidth;
+                        ctx.drawImage(fImg, 0, 0, fImg.naturalWidth, fCropSrcH,
+                            fposCX - fimgW / 2, fposY - fCropDstH / 2, fimgW, fCropDstH);
+                    } else {
+                        // Lainnya: full image, bottom-anchor
+                        ctx.drawImage(fImg, fposCX - fimgW / 2, fposY - fimgH, fimgW, fimgH);
+                    }
                 }
 
                 if (i < 2) {
