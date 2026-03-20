@@ -391,7 +391,9 @@
                 // Semua filter: bottom-anchor ke puncak kepala
                 var topOfHead = box.yCenter - box.height * 0.5;
                 var targetX = box.xCenter;
-                var targetY = Math.max(0.02, topOfHead);
+                // Bebek & kucing kontennya lebih bawah di dalam gambar, perlu diangkat lebih
+                var liftOffset = (currentFilter === 1) ? 0 : box.height * 0.35;
+                var targetY = Math.max(0.02, topOfHead - liftOffset);
                 // Smooth position
                 filterPos.x += (targetX - filterPos.x) * 0.4;
                 filterPos.y += (targetY - filterPos.y) * 0.4;
