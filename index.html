@@ -388,10 +388,12 @@
                 var targetX = box.xCenter;
                 // Posisikan center filter tepat di atas kepala:
                 // top of face = yCenter - height/2; geser ke atas 60% lagi dari face height
-                // Semua filter: di atas kepala (bottom filter align ke puncak kepala)
+                // Semua filter: bottom-anchor ke puncak kepala
                 var topOfHead = box.yCenter - box.height * 0.5;
                 var targetX = box.xCenter;
-                var targetY = Math.max(0.02, topOfHead);
+                // Kura-kura udah pas, bebek & kucing dinaikkan dikit
+                var headOffset = (currentFilter === 1) ? 0 : box.height * 0.12;
+                var targetY = Math.max(0.02, topOfHead - headOffset);
                 // Smooth position
                 filterPos.x += (targetX - filterPos.x) * 0.4;
                 filterPos.y += (targetY - filterPos.y) * 0.4;
