@@ -388,8 +388,9 @@
                 var targetX = box.xCenter;
                 // Posisikan center filter tepat di atas kepala:
                 // top of face = yCenter - height/2; geser ke atas 60% lagi dari face height
+                // filterPos.y = posisi BAWAH filter (= puncak kepala)
                 var topOfHead = box.yCenter - box.height * 0.5;
-                var targetY = Math.max(0.02, topOfHead - box.height * 0.4);
+                var targetY = Math.max(0.02, topOfHead);
                 // Smooth position
                 filterPos.x += (targetX - filterPos.x) * 0.4;
                 filterPos.y += (targetY - filterPos.y) * 0.4;
@@ -420,7 +421,7 @@
                     // filterPos.x adalah koordinat video asli (unmirrored), canvas di-mirror jadi flip X
                     var cx = (1 - filterPos.x) * w;
                     var cy = filterPos.y * h;
-                    ctx.drawImage(img, cx - imgW / 2, cy - imgH / 2, imgW, imgH);
+                    ctx.drawImage(img, cx - imgW / 2, cy - imgH, imgW, imgH); // bottom-anchor
                 }
 
                 // Kirim frame ke face detection tiap 3 frame
@@ -574,7 +575,7 @@
                     var fimgH = fimgW * fImg.naturalHeight / fImg.naturalWidth;
                     var fposCX = sidePadding + (1 - fPos.fx) * photoWidth;
                     var fposY  = currentY + fPos.fy * photoHeight;
-                    ctx.drawImage(fImg, fposCX - fimgW / 2, fposY - fimgH / 2, fimgW, fimgH);
+                    ctx.drawImage(fImg, fposCX - fimgW / 2, fposY - fimgH, fimgW, fimgH); // bottom-anchor
                 }
 
                 if (i < 2) {
