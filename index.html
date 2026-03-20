@@ -386,11 +386,14 @@
                 var box = results.detections[0].boundingBox;
                 // box: xCenter, yCenter, width, height (normalized 0-1, unmirrored video coords)
                 var targetX = box.xCenter;
-                var targetY = Math.max(0.01, (box.yCenter - box.height * 0.5) - box.height * 0.35);
+                // Posisikan center filter tepat di atas kepala:
+                // top of face = yCenter - height/2; geser ke atas 60% lagi dari face height
+                var topOfHead = box.yCenter - box.height * 0.5;
+                var targetY = Math.max(0.02, topOfHead - box.height * 0.4);
                 // Smooth position
-                filterPos.x += (targetX - filterPos.x) * 0.5;
-                filterPos.y += (targetY - filterPos.y) * 0.5;
-                filterFaceW += (box.width - filterFaceW) * 0.5;
+                filterPos.x += (targetX - filterPos.x) * 0.4;
+                filterPos.y += (targetY - filterPos.y) * 0.4;
+                filterFaceW += (box.width - filterFaceW) * 0.4;
             }
             detecting = false;
         });
@@ -412,7 +415,7 @@
                 // Gambar filter auto di atas kepala
                 var img = filterImages[currentFilter];
                 if (currentFilter > 0 && img && img.complete && img.naturalWidth > 0) {
-                    var imgW = filterFaceW * w * 1.4;
+                    var imgW = filterFaceW * w * 0.9;
                     var imgH = imgW * img.naturalHeight / img.naturalWidth;
                     // filterPos.x adalah koordinat video asli (unmirrored), canvas di-mirror jadi flip X
                     var cx = (1 - filterPos.x) * w;
@@ -567,7 +570,7 @@
                 if (currentFilter > 0 && fImg && fImg.complete && fImg.naturalWidth > 0) {
                     var fPos = capturedFilterPos[i] || { fx: 0.5, fy: 0.15, fw: 0.3 };
                     // fw = normalized face width; foto di strip juga di-mirror, jadi flip X
-                    var fimgW = (fPos.fw || 0.3) * photoWidth * 1.4;
+                    var fimgW = (fPos.fw || 0.3) * photoWidth * 0.9;
                     var fimgH = fimgW * fImg.naturalHeight / fImg.naturalWidth;
                     var fposCX = sidePadding + (1 - fPos.fx) * photoWidth;
                     var fposY  = currentY + fPos.fy * photoHeight;
